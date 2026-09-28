@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales Analytics Dashboard</title>
+  <meta name="description" content="Static sales analytics dashboard with KPIs, revenue trends, channel breakdown and product table.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar__brand">
+        <span class="topbar__logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+        </span>
+        <div class="topbar__titles">
+          <h1>Sales Analytics</h1>
+          <p>Performance overview</p>
+        </div>
+      </div>
+      <div class="topbar__actions">
+        <div class="period-switch" role="group" aria-label="Date range">
+          <button class="period-btn" data-days="7" type="button">7D</button>
+          <button class="period-btn is-active" data-days="30" type="button">30D</button>
+          <button class="period-btn" data-days="90" type="button">90D</button>
+        </div>
+        <button class="btn" id="regenerate-btn" type="button" title="Generate a new deterministic dataset">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+          Regenerate data
+        </button>
+        <button class="btn btn--icon" id="theme-toggle" type="button" aria-label="Toggle color theme">
+          <svg class="icon-sun" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        </button>
+      </div>
+    </header>
+    <!-- KPI -->
+    <section class="kpi-grid" id="kpi-grid" aria-label="Key metrics"></section>
+
+    <!-- CHARTS -->
+    <section class="charts-grid">
+      <article class="card card--revenue">
+        <div class="card__head">
+          <div>
+            <h2 class="card__title">Revenue</h2>
+            <p class="card__subtitle">Daily revenue for the selected period</p>
+          </div>
+        </div>
+        <div class="chart-wrap chart-wrap--tall"><canvas id="revenue-chart" aria-label="Daily revenue chart" role="img"></canvas></div>
+      </article>
+      <article class="card card--channels">
+        <div class="card__head">
+          <div>
+            <h2 class="card__title">Revenue by channel</h2>
+            <p class="card__subtitle">Attribution across acquisition sources</p>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="channels-chart" aria-label="Revenue by channel chart" role="img"></canvas></div>
+      </article>
+      <article class="card card--categories">
+        <div class="card__head">
+          <div>
+            <h2 class="card__title">Category share</h2>
+            <p class="card__subtitle">Revenue distribution by product category</p>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="categories-chart" aria-label="Category share chart" role="img"></canvas></div>
+      </article>
+    </section>
+
+    <!-- TABLE -->
+    <section class="card card--table">
+      <div class="card__head card__head--row">
+        <div>
+          <h2 class="card__title">Top products</h2>
+          <p class="card__subtitle">Click a column header to sort</p>
+        </div>
+        <div class="table-tools">
+          <label class="search" for="product-search">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="product-search" type="search" placeholder="Search products" autocomplete="off">
+          </label>
+          <button class="btn" id="export-btn" type="button">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+            Export CSV
+          </button>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="products" id="products-table">
+          <thead>
+            <tr>
+              <th scope="col"><button type="button" class="th-sort" data-key="name">Product</button></th>
+              <th scope="col"><button type="button" class="th-sort" data-key="category">Category</button></th>
+              <th scope="col" class="num"><button type="button" class="th-sort" data-key="units">Units</button></th>
+              <th scope="col" class="num"><button type="button" class="th-sort" data-key="revenue">Revenue</button></th>
+              <th scope="col" class="num"><button type="button" class="th-sort" data-key="aov">Avg order</button></th>
+              <th scope="col" class="num"><button type="button" class="th-sort" data-key="trend">Trend</button></th>
+            </tr>
+          </thead>
+          <tbody id="products-body"></tbody>
+        </table>
+      </div>
+      <p class="table-empty" id="table-empty" hidden>No products match your search.</p>
+    </section>
+
+    <footer class="footer">
+      <p>Demo dataset generated locally with a seeded PRNG. No requests leave the browser.</p>
+    </footer>
+  </div>
+  <script src="js/data.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
