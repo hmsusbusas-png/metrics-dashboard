@@ -99,22 +99,27 @@
       fmtDelta(value) + "</span>";
   }
 
-  function renderTable() {
-    var body = document.getElementById("products-body");
-    var empty = document.getElementById("table-empty");
-    if (!body || !dataset) return;
-
+  /* Products exactly as the table shows them: current search filter and
+     current sort. Shared by rendering and CSV export. */
+  function visibleProducts() {
     var query = state.search.trim().toLowerCase();
     var rows = dataset.products.filter(function (p) {
       return !query || p.name.toLowerCase().indexOf(query) !== -1 || p.category.toLowerCase().indexOf(query) !== -1;
     });
-
-    rows = rows.slice().sort(function (a, b) {
+    return rows.slice().sort(function (a, b) {
       var va = a[state.sortKey];
       var vb = b[state.sortKey];
       var cmp = typeof va === "string" ? va.localeCompare(vb) : va - vb;
       return state.sortDir === "asc" ? cmp : -cmp;
     });
+  }
+
+  function renderTable() {
+    var body = document.getElementById("products-body");
+    var empty = document.getElementById("table-empty");
+    if (!body || !dataset) return;
+
+    var rows = visibleProducts();
 
     body.innerHTML = rows.map(function (p) {
       return "<tr>" +
@@ -135,6 +140,12 @@
         btn.classList.add(state.sortDir === "asc" ? "is-sorted-asc" : "is-sorted-desc");
       }
     });
+
+    document.querySelectorAll("#products-table thead th").forEach(function (th) {
+      var btn = th.querySelector(".th-sort");
+      var active = Boolean(btn) && btn.getAttribute("data-key") === state.sortKey;
+      th.setAttribute("aria-sort", active ? (state.sortDir === "asc" ? "ascending" : "descending") : "none");
+    });
   }
 
   /* ---------- CSV export ---------- */
@@ -142,7 +153,7 @@
   function exportCsv() {
     if (!dataset) return;
     var header = "Product,Category,Units,Revenue,Avg Order,Trend %";
-    var lines = dataset.products.map(function (p) {
+    var lines = visibleProducts().map(function (p) {
       return [p.name, p.category, p.units, p.revenue, p.aov, (p.trend * 100).toFixed(1)]
         .map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; })
         .join(",");

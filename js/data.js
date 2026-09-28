@@ -15,6 +15,14 @@
     };
   }
 
+  /* Local YYYY-MM-DD. toISOString() would shift the label a day back for
+     UTC+ timezones: Moscow midnight is 21:00 of the previous day in UTC. */
+  function localDateKey(d) {
+    var mm = String(d.getMonth() + 1).padStart(2, "0");
+    var dd = String(d.getDate()).padStart(2, "0");
+    return d.getFullYear() + "-" + mm + "-" + dd;
+  }
+
   var CHANNELS = ["Organic", "Paid", "Email", "Social", "Referral"];
   var CATEGORIES = ["Electronics", "Apparel", "Home & Garden", "Beauty", "Sports"];
   var PRODUCT_NAMES = [
@@ -44,7 +52,7 @@
       var orders = Math.round(revenue / (58 + rnd() * 26));
       var visitors = Math.round(orders / (0.021 + rnd() * 0.012));
       series.push({
-        date: d.toISOString().slice(0, 10),
+        date: localDateKey(d),
         revenue: revenue,
         orders: orders,
         visitors: visitors

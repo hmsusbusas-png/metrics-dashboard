@@ -5,6 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sales Analytics Dashboard</title>
   <meta name="description" content="Static sales analytics dashboard with KPIs, revenue trends, channel breakdown and product table.">
+  <link rel="canonical" href="https://hmsusbusas-png.github.io/metrics-dashboard/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Sales Analytics Dashboard">
+  <meta property="og:title" content="Sales Analytics Dashboard">
+  <meta property="og:description" content="Static sales analytics dashboard with KPIs, revenue trends, channel breakdown and product table.">
+  <meta property="og:url" content="https://hmsusbusas-png.github.io/metrics-dashboard/">
+  <meta property="og:image" content="https://hmsusbusas-png.github.io/metrics-dashboard/screenshots/desktop.png">
+  <meta property="og:image:alt" content="Desktop view of the sales analytics dashboard">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Sales Analytics Dashboard">
+  <meta name="twitter:description" content="Static sales analytics dashboard with KPIs, revenue trends, channel breakdown and product table.">
+  <meta name="twitter:image" content="https://hmsusbusas-png.github.io/metrics-dashboard/screenshots/desktop.png">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -84,7 +96,7 @@
         <div class="table-tools">
           <label class="search" for="product-search">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-            <input id="product-search" type="search" placeholder="Search products" autocomplete="off">
+            <input id="product-search" type="search" placeholder="Search products" aria-label="Search products" autocomplete="off">
           </label>
           <button class="btn" id="export-btn" type="button">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
@@ -96,12 +108,12 @@
         <table class="products" id="products-table">
           <thead>
             <tr>
-              <th scope="col"><button type="button" class="th-sort" data-key="name">Product</button></th>
-              <th scope="col"><button type="button" class="th-sort" data-key="category">Category</button></th>
-              <th scope="col" class="num"><button type="button" class="th-sort" data-key="units">Units</button></th>
-              <th scope="col" class="num"><button type="button" class="th-sort" data-key="revenue">Revenue</button></th>
-              <th scope="col" class="num"><button type="button" class="th-sort" data-key="aov">Avg order</button></th>
-              <th scope="col" class="num"><button type="button" class="th-sort" data-key="trend">Trend</button></th>
+              <th scope="col" aria-sort="none"><button type="button" class="th-sort" data-key="name">Product</button></th>
+              <th scope="col" aria-sort="none"><button type="button" class="th-sort" data-key="category">Category</button></th>
+              <th scope="col" class="num" aria-sort="none"><button type="button" class="th-sort" data-key="units">Units</button></th>
+              <th scope="col" class="num" aria-sort="descending"><button type="button" class="th-sort" data-key="revenue">Revenue</button></th>
+              <th scope="col" class="num" aria-sort="none"><button type="button" class="th-sort" data-key="aov">Avg order</button></th>
+              <th scope="col" class="num" aria-sort="none"><button type="button" class="th-sort" data-key="trend">Trend</button></th>
             </tr>
           </thead>
           <tbody id="products-body"></tbody>

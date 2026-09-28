@@ -26,14 +26,30 @@
     });
   }
 
+  /* Gradient fill tied to the real chart area. Chart.js resizes the canvas
+     after layout (a bare canvas element defaults to 150px), so the gradient
+     is built from chartArea on every resolve and cached per height: it
+     follows both the first render and later resizes. */
+  function revenueGradient(chart) {
+    var area = chart.chartArea;
+    if (!area) return "rgba(99, 102, 241, 0.28)";
+    var height = Math.round(area.bottom - area.top);
+    var cache = chart.$revenueGradient;
+    if (!cache || cache.height !== height) {
+      var gradient = chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
+      gradient.addColorStop(0, "rgba(99, 102, 241, 0.28)");
+      gradient.addColorStop(1, "rgba(99, 102, 241, 0)");
+      cache = { height: height, gradient: gradient };
+      chart.$revenueGradient = cache;
+    }
+    return cache.gradient;
+  }
+
   function renderRevenue(series) {
     var el = document.getElementById("revenue-chart");
     if (!el || typeof Chart === "undefined") return;
     var p = palette();
     var ctx = el.getContext("2d");
-    var gradient = ctx.createLinearGradient(0, 0, 0, el.height || 300);
-    gradient.addColorStop(0, "rgba(99, 102, 241, 0.28)");
-    gradient.addColorStop(1, "rgba(99, 102, 241, 0)");
 
     charts.revenue = new Chart(ctx, {
       type: "line",
@@ -43,7 +59,7 @@
           label: "Revenue",
           data: series.map(function (s) { return s.revenue; }),
           borderColor: p.accent,
-          backgroundColor: gradient,
+          backgroundColor: function (context) { return revenueGradient(context.chart); },
           fill: true,
           tension: 0.35,
           borderWidth: 2,
