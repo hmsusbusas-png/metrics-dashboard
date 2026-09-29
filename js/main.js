@@ -96,7 +96,7 @@
     var arrow = value >= 0 ? "M7 17 17 7M8 7h9v9" : "M7 7l10 10M16 17H7V8";
     return '<span class="trend-cell ' + dir + '">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="' + arrow + '"/></svg>' +
-      fmtDelta(value) + "</span>";
+      fmtDelta(value * 100) + "</span>";
   }
 
   /* Products exactly as the table shows them: current search filter and
