@@ -53,8 +53,6 @@ h1, h2, h3, p { margin: 0; }
 
 button { font: inherit; cursor: pointer; }
 
-/* ---------- Top bar ---------- */
-
 .topbar {
   display: flex;
   align-items: center;
@@ -128,8 +126,6 @@ button { font: inherit; cursor: pointer; }
 [data-theme="dark"] .icon-sun { display: none; }
 [data-theme="dark"] .icon-moon { display: block; }
 
-/* ---------- Cards ---------- */
-
 .card {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -150,8 +146,6 @@ button { font: inherit; cursor: pointer; }
 
 .card__title { font-size: 14.5px; font-weight: 600; letter-spacing: -0.01em; }
 .card__subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-
-/* ---------- KPI ---------- */
 
 .kpi-grid {
   display: grid;
@@ -201,11 +195,9 @@ button { font: inherit; cursor: pointer; }
 
 .kpi__delta span.vs { color: var(--text-muted); font-weight: 400; }
 
-/* ---------- Charts ---------- */
-
 .charts-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   grid-template-areas:
     "revenue channels"
     "revenue categories";
@@ -213,14 +205,14 @@ button { font: inherit; cursor: pointer; }
   margin-bottom: 14px;
 }
 
+.charts-grid .card { min-width: 0; }
+
 .card--revenue { grid-area: revenue; }
 .card--channels { grid-area: channels; }
 .card--categories { grid-area: categories; }
 
 .chart-wrap { position: relative; height: 220px; }
 .chart-wrap--tall { height: 468px; }
-
-/* ---------- Table ---------- */
 
 .card--table { padding-bottom: 8px; }
 
@@ -326,20 +318,16 @@ button { font: inherit; cursor: pointer; }
   font-size: 13px;
 }
 
-/* ---------- Footer ---------- */
-
 .footer {
   margin-top: 20px;
   color: var(--text-muted);
   font-size: 12px;
 }
 
-/* ---------- Responsive ---------- */
-
 @media (max-width: 960px) {
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .charts-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "revenue" "channels" "categories";
   }
   .chart-wrap--tall { height: 260px; }

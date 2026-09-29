@@ -1,9 +1,6 @@
-/* Deterministic demo data. Same seed -> same dataset, so screenshots and
-   numbers stay stable between reloads. */
 (function () {
   "use strict";
 
-  // mulberry32: small, fast, good enough for demo data
   function mulberry32(seed) {
     var a = seed >>> 0;
     return function () {
@@ -15,8 +12,6 @@
     };
   }
 
-  /* Local YYYY-MM-DD. toISOString() would shift the label a day back for
-     UTC+ timezones: Moscow midnight is 21:00 of the previous day in UTC. */
   function localDateKey(d) {
     var mm = String(d.getMonth() + 1).padStart(2, "0");
     var dd = String(d.getDate()).padStart(2, "0");
@@ -33,69 +28,118 @@
     "Summit Yoga Mat", "Flex Dumbbells", "Ridge Water Bottle", "Trail Cap"
   ];
 
+  var CHANNEL_BASE = { Organic: 0.34, Paid: 0.26, Email: 0.16, Social: 0.15, Referral: 0.09 };
+
+  function channelShare(name, dayIndex, dow, rnd) {
+    var base = CHANNEL_BASE[name];
+    var noise = 0.9 + rnd() * 0.2;
+    if (name === "Organic") return base * (1 + 0.0035 * dayIndex) * noise;
+    if (name === "Paid") {
+      var phase = dayIndex % 18;
+      return base * (0.72 + 0.62 * Math.exp(-phase / 8)) * noise;
+    }
+    if (name === "Email") return base * (dow === 2 ? 1.85 : 0.82) * noise;
+    if (name === "Social") return base * (dow === 0 || dow === 6 ? 1.5 : 0.84) * noise;
+    var spike = rnd() < 0.055 ? 2.6 + rnd() * 2.4 : 1;
+    return base * 0.62 * spike * noise;
+  }
+
   function generateDataset(seed, days) {
     var rnd = mulberry32(seed);
     var today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    var series = [];
+    var total = days * 2;
     var base = 8200 + rnd() * 2600;
-    var weekly = [0.82, 0.95, 1.0, 1.03, 1.08, 1.18, 1.12]; // Sun..Sat
 
-    for (var i = days - 1; i >= 0; i--) {
+    var timeline = [];
+    for (var i = 0; i < total; i++) {
       var d = new Date(today);
-      d.setDate(today.getDate() - i);
-      var dow = weekly[d.getDay()];
-      var drift = 1 + (days - i) / days * 0.22; // mild upward trend
-      var noise = 0.88 + rnd() * 0.26;
-      var revenue = Math.round(base * dow * drift * noise);
+      d.setDate(today.getDate() - (total - 1 - i));
+      var dow = d.getDay();
+      var parts = {};
+      var revenue = 0;
+      CHANNELS.forEach(function (name) {
+        var v = Math.round(base * channelShare(name, i, dow, rnd));
+        parts[name] = v;
+        revenue += v;
+      });
       var orders = Math.round(revenue / (58 + rnd() * 26));
       var visitors = Math.round(orders / (0.021 + rnd() * 0.012));
-      series.push({
+      timeline.push({
         date: localDateKey(d),
         revenue: revenue,
         orders: orders,
-        visitors: visitors
+        visitors: visitors,
+        channels: parts
       });
     }
 
-    var channelWeights = [0.34, 0.26, 0.16, 0.15, 0.09].map(function (w) {
-      return w * (0.85 + rnd() * 0.3);
-    });
-    var weightSum = channelWeights.reduce(function (a, b) { return a + b; }, 0);
-    var totalRevenue = series.reduce(function (a, s) { return a + s.revenue; }, 0);
-    var channels = CHANNELS.map(function (name, idx) {
-      return {
-        name: name,
-        revenue: Math.round(totalRevenue * channelWeights[idx] / weightSum)
-      };
+    var series = timeline.slice(days);
+    var prevSeries = timeline.slice(0, days);
+
+    var channels = CHANNELS.map(function (name) {
+      var sum = 0;
+      series.forEach(function (row) { sum += row.channels[name]; });
+      return { name: name, revenue: sum };
     });
 
-    var catWeights = CATEGORIES.map(function () { return 0.6 + rnd(); });
-    var catSum = catWeights.reduce(function (a, b) { return a + b; }, 0);
-    var categories = CATEGORIES.map(function (name, idx) {
-      return {
-        name: name,
-        revenue: Math.round(totalRevenue * catWeights[idx] / catSum)
-      };
+    var catBase = CATEGORIES.map(function () { return 0.6 + rnd(); });
+    var catSum = catBase.reduce(function (a, b) { return a + b; }, 0);
+    var catDaily = CATEGORIES.map(function () { return new Array(total); });
+    timeline.forEach(function (row, idx) {
+      var w = CATEGORIES.map(function (_, k) { return catBase[k] * (0.92 + 0.16 * rnd()); });
+      var ws = w.reduce(function (a, b) { return a + b; }, 0);
+      CATEGORIES.forEach(function (_, k) { catDaily[k][idx] = row.revenue * w[k] / ws; });
+    });
+
+    var categories = CATEGORIES.map(function (name, k) {
+      var sum = 0;
+      for (var idx = days; idx < total; idx++) sum += catDaily[k][idx];
+      return { name: name, revenue: Math.round(sum) };
+    });
+
+    var catMembers = CATEGORIES.map(function () {
+      return [0, 1, 2, 3].map(function () { return 0.5 + rnd(); });
+    });
+    catMembers.forEach(function (ws) {
+      var s = ws.reduce(function (a, b) { return a + b; }, 0);
+      for (var j = 0; j < ws.length; j++) ws[j] /= s;
     });
 
     var products = PRODUCT_NAMES.map(function (name, idx) {
-      var category = CATEGORIES[idx % CATEGORIES.length];
-      var units = Math.round(40 + rnd() * 460);
+      var catIdx = idx % CATEGORIES.length;
+      var memberIdx = Math.floor(idx / CATEGORIES.length);
       var price = 18 + Math.round(rnd() * 180);
-      var prevUnits = Math.round(units * (0.72 + rnd() * 0.55));
+      var itemsPerOrder = 1.2 + rnd() * 2.3;
+      var r = rnd();
+      var dailyFactor = r < 0.35 ? 1.002 + rnd() * 0.004 : (r < 0.7 ? 0.998 + rnd() * 0.004 : 0.994 + rnd() * 0.004);
+      var weight = catMembers[catIdx][memberIdx];
+      var dailyUnits = new Array(total);
+      var dailyOrders = new Array(total);
+      for (var i2 = 0; i2 < total; i2++) {
+        var u = catDaily[catIdx][i2] * weight * Math.pow(dailyFactor, i2) / price;
+        dailyUnits[i2] = u;
+        dailyOrders[i2] = u / itemsPerOrder;
+      }
       return {
         name: name,
-        category: category,
-        units: units,
-        revenue: units * price,
-        aov: Math.round(units * price / Math.max(1, Math.round(units / (6 + rnd() * 8)))),
-        trend: prevUnits > 0 ? (units - prevUnits) / prevUnits : 0
+        category: CATEGORIES[catIdx],
+        price: price,
+        dailyUnits: dailyUnits,
+        dailyOrders: dailyOrders
       };
     });
 
-    return { seed: seed, days: days, series: series, channels: channels, categories: categories, products: products };
+    return {
+      seed: seed,
+      days: days,
+      series: series,
+      prevSeries: prevSeries,
+      channels: channels,
+      categories: categories,
+      products: products
+    };
   }
 
   window.DashboardData = {

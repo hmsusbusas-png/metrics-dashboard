@@ -1,5 +1,3 @@
-/* Chart rendering. All charts are destroyed before re-creation so the
-   page can be re-rendered on filter change or theme change without leaks. */
 (function () {
   "use strict";
 
@@ -26,10 +24,6 @@
     });
   }
 
-  /* Gradient fill tied to the real chart area. Chart.js resizes the canvas
-     after layout (a bare canvas element defaults to 150px), so the gradient
-     is built from chartArea on every resolve and cached per height: it
-     follows both the first render and later resizes. */
   function revenueGradient(chart) {
     var area = chart.chartArea;
     if (!area) return "rgba(99, 102, 241, 0.28)";

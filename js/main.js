@@ -1,4 +1,3 @@
-/* App state, filters, KPI cards, product table, CSV export and theming. */
 (function () {
   "use strict";
 
@@ -12,8 +11,6 @@
 
   var dataset = null;
 
-  /* ---------- Formatting helpers ---------- */
-
   function fmtMoney(n) { return "$" + Math.round(n).toLocaleString("en-US"); }
   function fmtInt(n) { return Math.round(n).toLocaleString("en-US"); }
   function fmtPct(n) { return n.toFixed(2) + "%"; }
@@ -23,7 +20,11 @@
     return arr.reduce(function (acc, x) { return acc + fn(x); }, 0);
   }
 
-  /* ---------- KPI cards ---------- */
+  function sumRange(arr, from, to) {
+    var s = 0;
+    for (var i = from; i < to; i++) s += arr[i];
+    return s;
+  }
 
   var KPI_META = [
     { key: "revenue", label: "Revenue", icon: "M12 2v20M17 7H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" },
@@ -51,9 +52,8 @@
   function renderKpis() {
     var grid = document.getElementById("kpi-grid");
     if (!grid || !dataset) return;
-    var half = Math.floor(dataset.series.length / 2);
-    var current = computeKpis(dataset.series.slice(half));
-    var previous = computeKpis(dataset.series.slice(0, half));
+    var current = computeKpis(dataset.series);
+    var previous = computeKpis(dataset.prevSeries);
 
     grid.innerHTML = KPI_META.map(function (meta) {
       var value = current[meta.key];
@@ -74,22 +74,41 @@
     }).join("");
   }
 
-  /* ---------- Theme ---------- */
-
   function applyTheme(theme) {
     document.documentElement.setAttribute("data-theme", theme);
-    try { localStorage.setItem("dashboard-theme", theme); } catch (e) { /* private mode */ }
+    try { localStorage.setItem("dashboard-theme", theme); } catch (e) {}
     if (dataset && window.DashboardCharts) window.DashboardCharts.renderAll(dataset);
   }
 
   function initTheme() {
     var saved = null;
-    try { saved = localStorage.getItem("dashboard-theme"); } catch (e) { /* ignore */ }
+    try { saved = localStorage.getItem("dashboard-theme"); } catch (e) {}
     var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
     document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
   }
 
-  /* ---------- Product table ---------- */
+  function productRow(p, days) {
+    var total = p.dailyUnits.length;
+    var units = Math.round(sumRange(p.dailyUnits, days, total));
+    var revenue = units * p.price;
+    var orders = sumRange(p.dailyOrders, days, total);
+    var last7 = sumRange(p.dailyUnits, total - 7, total);
+    var prev7 = sumRange(p.dailyUnits, total - 14, total - 7);
+    return {
+      name: p.name,
+      category: p.category,
+      units: units,
+      revenue: revenue,
+      aov: orders > 0 ? revenue / orders : 0,
+      trend: prev7 > 0 ? (last7 - prev7) / prev7 : 0
+    };
+  }
+
+  function buildDataset(seed, days) {
+    var data = window.DashboardData.generate(seed, days);
+    data.products = data.products.map(function (p) { return productRow(p, days); });
+    return data;
+  }
 
   function trendCell(value) {
     var dir = value >= 0 ? "is-up" : "is-down";
@@ -99,8 +118,6 @@
       fmtDelta(value * 100) + "</span>";
   }
 
-  /* Products exactly as the table shows them: current search filter and
-     current sort. Shared by rendering and CSV export. */
   function visibleProducts() {
     var query = state.search.trim().toLowerCase();
     var rows = dataset.products.filter(function (p) {
@@ -148,8 +165,6 @@
     });
   }
 
-  /* ---------- CSV export ---------- */
-
   function exportCsv() {
     if (!dataset) return;
     var header = "Product,Category,Units,Revenue,Avg Order,Trend %";
@@ -169,8 +184,6 @@
     URL.revokeObjectURL(url);
   }
 
-  /* ---------- Rendering pipeline ---------- */
-
   function renderAll() {
     renderKpis();
     if (window.DashboardCharts) window.DashboardCharts.renderAll(dataset);
@@ -179,16 +192,14 @@
 
   function regenerate() {
     state.seed = Math.floor(Math.random() * 1e9);
-    dataset = window.DashboardData.generate(state.seed, state.days);
+    dataset = buildDataset(state.seed, state.days);
     renderAll();
   }
-
-  /* ---------- Init ---------- */
 
   document.addEventListener("DOMContentLoaded", function () {
     initTheme();
 
-    dataset = window.DashboardData.generate(state.seed, state.days);
+    dataset = buildDataset(state.seed, state.days);
     renderAll();
 
     document.querySelectorAll(".period-btn").forEach(function (btn) {
@@ -199,7 +210,7 @@
         document.querySelectorAll(".period-btn").forEach(function (b) {
           b.classList.toggle("is-active", b === btn);
         });
-        dataset = window.DashboardData.generate(state.seed, state.days);
+        dataset = buildDataset(state.seed, state.days);
         renderAll();
       });
     });
@@ -240,4 +251,3 @@
     });
   });
 })();
-
