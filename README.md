@@ -1,62 +1,57 @@
-# Sales Analytics Dashboard
+# Дашборд аналитики продаж
 
-A static, dependency-light sales analytics dashboard built with vanilla JavaScript and Chart.js. All data is generated in the browser with a seeded PRNG, so the numbers are deterministic and reproducible. No backend required.
+Статический дашборд на ванильном JavaScript и Chart.js. Все данные генерируются прямо в браузере через seeded PRNG, поэтому числа детерминированные и воспроизводимые. Бэкенда нет.
 
 **Live demo:** [hmsusbusas-png.github.io/metrics-dashboard](https://hmsusbusas-png.github.io/metrics-dashboard/)
 
-![Desktop view](screenshots/desktop.png)
+![Дашборд, десктопная версия](screenshots/desktop.png)
 
-## Features
+## Что внутри
 
-- **KPI cards**: Revenue, Orders, Avg Order Value and Conversion Rate, each with a delta versus the previous period.
-- **Revenue line chart**: daily revenue with a gradient fill.
-- **Channel breakdown**: bar chart across Organic, Paid, Email, Social and Referral.
-- **Category share**: doughnut chart of revenue distribution.
-- **Top products table**: sortable by any column (click a header) with live search.
-- **Period filter**: 7 / 30 / 90 days; every widget recalculates.
-- **Regenerate data**: produces a new deterministic dataset from a random seed.
-- **CSV export**: downloads the products currently visible in the table, with the active search and sort applied.
-- **Dark / light theme**: toggle with `localStorage` persistence, respects `prefers-color-scheme`, Chart.js colors update on switch.
+- KPI-карточки: выручка, заказы, средний чек, конверсия — у каждой дельта к прошлому периоду
+- Линейный график выручки по дням с градиентной заливкой
+- Bar chart по каналам (Organic, Paid, Email, Social, Referral) и donut по долям категорий
+- Таблица топ-продуктов: сортировка кликом по любому заголовку, живой поиск
+- Фильтр периода 7 / 30 / 90 дней — пересчитываются все виджеты
+- Кнопка Regenerate data: новый детерминированный датасет из случайного сида
+- Экспорт CSV: выгружает строки, которые сейчас видны в таблице, с учётом активного поиска и сортировки
+- Тёмная и светлая темы: переключатель с сохранением в localStorage, учитывает prefers-color-scheme, цвета графиков обновляются на лету
 
-## Quick start
+## Как посмотреть
 
-No build step. Serve the folder with any static server:
-
-```bash
+```powershell
+# PowerShell, из папки проекта
 python -m http.server 8000
+# дальше открыть http://localhost:8000
 ```
 
-Then open <http://localhost:8000>.
+Сборки нет, подойдёт любой статический сервер.
 
-## Project structure
+## Честно об ограничениях
+
+- Данные ненастоящие: их генерирует mulberry32 (seeded PRNG) в браузере, ничего никуда не отправляется
+- Chart.js подключён с CDN — без интернета графики не отрисуются
+- Авторизации, истории и реальных источников данных нет, это демо
+
+## Структура
 
 ```
-index.html        markup
-css/style.css     theme tokens + layout
-js/data.js        seeded PRNG (mulberry32) + demo data generator
-js/charts.js      Chart.js rendering, destroy/recreate on updates
-js/main.js        state, filters, table sort/search, CSV export, theming
+metrics-dashboard/
+├── index.html        # разметка
+├── css/style.css     # токены темы и раскладка
+├── js/data.js        # seeded PRNG (mulberry32) и генератор демо-данных
+├── js/charts.js      # отрисовка Chart.js, destroy/recreate при обновлениях
+├── js/main.js        # состояние, фильтры, сортировка и поиск в таблице, CSV, темы
+├── screenshots/      # desktop.png, mobile.png
+└── favicon.svg
 ```
 
-## Screenshots
+## Стек
 
-- Desktop: `screenshots/desktop.png`
-- Mobile: `screenshots/mobile.png`
+Ванильный JavaScript, Chart.js с CDN, CSS-переменные для тем. Без сборки и зависимостей.
 
 ---
 
-## Дашборд аналитики продаж
+## EN
 
-Статический дашборд на vanilla JavaScript и Chart.js. Данные генерируются в браузере через seeded PRNG (детерминированно), бэкенд не нужен.
-
-**Возможности:** KPI-карточки с дельтами к прошлому периоду, линейный график выручки с градиентной заливкой, bar chart по каналам, donut по категориям, таблица топ-продуктов с сортировкой и поиском, фильтр периода 7/30/90 дней, кнопка Regenerate data, экспорт CSV, тёмная/светлая тема с сохранением в localStorage.
-
-**Быстрый старт:**
-
-```bash
-python -m http.server 8000
-```
-
-Открыть <http://localhost:8000>.
-
-Скриншоты: `screenshots/desktop.png`, `screenshots/mobile.png`.
+A static sales analytics dashboard in vanilla JS + Chart.js. All data is generated in the browser with a seeded PRNG (mulberry32) — deterministic, reproducible, nothing leaves the page. KPI cards, line/bar/doughnut charts, sortable searchable table, 7/30/90-day filter, CSV export, dark/light theme with localStorage. Open `index.html` or run `python -m http.server 8000`. Live: https://hmsusbusas-png.github.io/metrics-dashboard/
